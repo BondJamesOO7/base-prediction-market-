@@ -19,6 +19,18 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: 'mine', label: 'My bets' },
 ]
 
+function BaseLogo({ className = 'size-9' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 111 111" fill="none" xmlns="http://w3.org" className={className} aria-hidden="true">
+      <rect width="111" height="111" rx="26" fill="#0052FF" />
+      <path
+        d="M54.921 91C74.294 91 90 75.33 90 56C90 36.67 74.294 21 54.921 21C36.609 21 21.584 35.03 20 52.893H66.085V59.107H20C21.584 76.97 36.609 91 54.921 91Z"
+        fill="white"
+      />
+    </svg>
+  )
+}
+
 export default function App() {
   const now = useNow()
   const { markets, total, owner, isLoading, isError, refetchAll } = useMarkets()
@@ -38,11 +50,14 @@ export default function App() {
   return (
     <div className="mx-auto min-h-dvh max-w-6xl px-4 pb-24 pt-6">
       <header className="mb-8 flex items-center justify-between gap-4">
-        <div>
-          <h1 className="display text-balance text-3xl font-bold sm:text-4xl">Base Prediction Market</h1>
-          <p className="mt-1 text-sm" style={{ color: 'var(--muted)' }}>
-            Bet USDC on YES or NO. Winners share the losing side's pool.
-          </p>
+        <div className="flex items-center gap-3.5">
+          <BaseLogo className="size-10 shrink-0 shadow-lg shadow-blue-600/20" />
+          <div>
+            <h1 className="display text-balance text-3xl font-bold sm:text-4xl">Base Prediction Market</h1>
+            <p className="mt-1 text-sm" style={{ color: 'var(--muted)' }}>
+              Bet USDC on YES or NO. Winners share the losing side's pool.
+            </p>
+          </div>
         </div>
         <ConnectKitButton />
       </header>
