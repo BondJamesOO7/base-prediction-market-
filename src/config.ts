@@ -15,7 +15,7 @@ export const config = createConfig({
   chains: [base, mainnet], // mainnet needed for ENS resolution
   connectors: [injected()],
   transports: {
-    [base.id]: http('https://llamarpc.com'),
+    [base.id]: http('https://publicnode.com'),
     [mainnet.id]: http(), // ENS resolution uses mainnet
   },
 })
