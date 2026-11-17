@@ -1,0 +1,21 @@
+/**
+ * wagmi configuration
+ * Base Prediction Market
+ */
+
+import { http, createConfig } from 'wagmi'
+import { base, mainnet } from 'wagmi/chains'
+import { injected } from 'wagmi/connectors'
+import { registerChain } from './tracing'
+
+// Pre-register chain RPC URLs so trace events show correct chain names immediately
+registerChain(base.id, base.rpcUrls.default.http[0])
+
+export const config = createConfig({
+  chains: [base, mainnet], // mainnet needed for ENS resolution
+  connectors: [injected()],
+  transports: {
+    [base.id]: http('https://base.org'),
+    [mainnet.id]: http(), // ENS resolution uses mainnet
+  },
+})
