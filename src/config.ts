@@ -9,7 +9,7 @@ import { injected } from 'wagmi/connectors'
 import { registerChain } from './tracing'
 
 // Pre-register chain RPC URLs so trace events show correct chain names immediately
-registerChain(base.id, base.rpcUrls.default.http[0])
+registerChain(base.id, base.rpcUrls.default.http)
 
 export const config = createConfig({
   chains: [base, mainnet], // mainnet needed for ENS resolution
