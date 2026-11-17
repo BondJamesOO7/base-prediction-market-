@@ -3,7 +3,7 @@
  * Base Prediction Market
  */
 
-import { http, createConfig } from 'wagmi'
+import { fallback, http, createConfig } from 'wagmi'
 import { base, mainnet } from 'wagmi/chains'
 import { injected } from 'wagmi/connectors'
 import { registerChain } from './tracing'
@@ -15,7 +15,11 @@ export const config = createConfig({
   chains: [base, mainnet], // mainnet needed for ENS resolution
   connectors: [injected()],
   transports: {
-    [base.id]: http('https://publicnode.com'),
+    [base.id]: fallback([
+      http('https://base.org'),
+      http('https://1rpc.io'),
+      http('https://meowrpc.com'),
+    ]),
     [mainnet.id]: http(), // ENS resolution uses mainnet
   },
 })
