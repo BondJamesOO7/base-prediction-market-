@@ -44,22 +44,13 @@ export function WalletPanel({ markets, total, onCreate }: WalletPanelProps) {
               </span>
             </div>
             <p className="mt-1.5 text-xs" style={{ color: wrongChain ? 'var(--danger)' : 'var(--muted)' }}>
-              {wrongChain ? 'Wrong network. Switch to Arc Testnet to bet.' : `${ARC_CHAIN.name} · ${shortAddress(address ?? '')}`}
+              {wrongChain ? 'Wrong network. Switch to Base to bet.' : `${ARC_CHAIN.name} · ${shortAddress(address ?? '')}`}
             </p>
-            <a
-              href="https://faucet.circle.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 inline-flex items-center gap-1 text-xs font-semibold"
-              style={{ color: 'var(--accent)' }}
-            >
-              Get test USDC <ExternalLink className="size-3" />
-            </a>
           </>
         ) : (
           <>
             <p className="mb-4 text-sm" style={{ color: 'var(--muted)' }}>
-              Connect a test wallet to see your balance and place bets on {ARC_CHAIN.name}.
+              Connect your wallet to see your balance and place bets on {ARC_CHAIN.name}.
             </p>
             <ConnectKitButton.Custom>
               {({ show }) => (
