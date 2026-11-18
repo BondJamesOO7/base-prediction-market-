@@ -12,14 +12,17 @@ import { registerChain } from './tracing'
 registerChain(base.id, base.rpcUrls.default.http)
 
 export const config = createConfig({
-  chains: [base, mainnet], // mainnet needed for ENS resolution
+  chains: [base, mainnet],
   connectors: [injected()],
+  batch: {
+    multicall: false,
+  },
   transports: {
     [base.id]: fallback([
-      http('https://base.org'),
-      http('https://1rpc.io'),
-      http('https://meowrpc.com'),
+      http('https://base.org', { batch: false, timeout: 8000 }),
+      http('https://drpc.org', { batch: false, timeout: 8000 }),
+      http('https://1rpc.io', { batch: false, timeout: 8000 }),
     ]),
-    [mainnet.id]: http(), // ENS resolution uses mainnet
+    [mainnet.id]: http(),
   },
 })
