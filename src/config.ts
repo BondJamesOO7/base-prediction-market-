@@ -19,8 +19,8 @@ export const config = createConfig({
   },
   transports: {
     [base.id]: fallback([
-      http('https://base.org', { batch: false, timeout: 8000 }),
-      http('https://drpc.org', { batch: false, timeout: 8000 }),
+      http('https://mainnet.base.org', { batch: false, timeout: 8000 }),
+      http('https://base.drpc.org', { batch: false, timeout: 8000 }),
       http('https://1rpc.io', { batch: false, timeout: 8000 }),
     ]),
     [mainnet.id]: http(),
