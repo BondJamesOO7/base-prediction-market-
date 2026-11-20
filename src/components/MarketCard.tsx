@@ -1,5 +1,5 @@
 import { toast } from 'sonner'
-import { Clock, Loader2 } from 'lucide-react'
+import { Clock, Loader2, Share2 } from 'lucide-react'
 import { useAccount } from 'wagmi'
 import { formatUsdc } from '@/onchain-money'
 import { useTx } from '@/hooks/useTx'
@@ -70,6 +70,14 @@ export function MarketCard({ data, now, owner, onBet, onChanged }: MarketCardPro
     })
   }
 
+  const shareOnX = () => {
+    const odds = pct === null ? '50% YES / 50% NO' : `${Math.round(yes)}% YES / ${Math.round(100 - yes)}% NO`
+    const text = `"${data.question}"\n\nCurrent odds: ${odds} • Pool: ${formatUsdc(pool)} USDC\n\nBet on Base Prediction Market:`
+    const appUrl = window.location.origin
+    const intentUrl = `https://x.com{encodeURIComponent(text)}&url=${encodeURIComponent(appUrl)}`
+    window.open(intentUrl, '_blank', 'noopener,noreferrer')
+  }
+
   const hasPosition = data.yesStake > 0n || data.noStake > 0n
   const resolveBusy = resolveTx.isPending || resolveTx.isConfirming
   const claimBusy = claimTx.isPending || claimTx.isConfirming
@@ -90,9 +98,23 @@ export function MarketCard({ data, now, owner, onBet, onChanged }: MarketCardPro
         >
           {STATUS_STYLE[status].label}
         </span>
-        <span className="flex items-center gap-1 text-xs tabular-nums" style={{ color: 'var(--subtle)' }}>
-          <Clock className="size-3" /> {timing}
-        </span>
+
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1 text-xs tabular-nums" style={{ color: 'var(--subtle)' }}>
+            <Clock className="size-3" /> {timing}
+          </span>
+          <button
+            type="button"
+            onClick={shareOnX}
+            title="Share market on X"
+            aria-label="Share market on X"
+            className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-opacity hover:opacity-80"
+            style={{ background: 'var(--surface-strong)', color: 'var(--ink-2)' }}
+          >
+            <Share2 className="size-3" />
+            <span>Share</span>
+          </button>
+        </div>
       </div>
 
       <h3 className="display text-balance text-xl font-semibold leading-snug" style={{ color: 'var(--ink)' }}>
