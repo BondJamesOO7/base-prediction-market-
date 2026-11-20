@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Calendar, Loader2 } from 'lucide-react'
+import { Calendar, Loader2, Sparkles } from 'lucide-react'
 import { ConnectKitButton } from 'connectkit'
 import { useAccount, useSwitchChain } from 'wagmi'
 import { Sheet } from './Sheet'
@@ -12,6 +12,12 @@ interface CreateSheetProps {
   onClose: () => void
   onDone: () => void
 }
+
+const QUESTION_TEMPLATES = [
+  'Will ETH close above $4,000 by the end of this month?',
+  'Will Base TVL hit a new all-time high this week?',
+  'Will BTC reach a new all-time high before 2027?',
+]
 
 const QUICK_PRESETS = [
   { label: '10 min', seconds: 10 * 60 },
@@ -85,11 +91,21 @@ function CreateForm({ onClose, onDone }: { onClose: () => void; onDone: () => vo
 
   return (
     <div className="space-y-4">
-      <label className="block">
-        <span className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.08em]" style={{ color: 'var(--subtle)' }}>
-          Question
-        </span>
+      <div>
+        <div className="mb-1.5 flex items-center justify-between">
+          <label
+            htmlFor="market-question"
+            className="text-xs font-semibold uppercase tracking-[0.08em]"
+            style={{ color: 'var(--subtle)' }}
+          >
+            Question
+          </label>
+          <span className="text-xs tabular-nums" style={{ color: 'var(--subtle)' }}>
+            {question.length}/200
+          </span>
+        </div>
         <textarea
+          id="market-question"
           value={question}
           onChange={(event) => setQuestion(event.target.value)}
           maxLength={200}
@@ -98,7 +114,24 @@ function CreateForm({ onClose, onDone }: { onClose: () => void; onDone: () => vo
           className="glass-inner w-full resize-none rounded-2xl p-3 text-sm outline-none placeholder:text-slate-500 focus:border-[var(--accent)]"
           style={{ color: 'var(--ink)' }}
         />
-      </label>
+
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <span className="flex items-center gap-1 text-[11px] font-medium" style={{ color: 'var(--subtle)' }}>
+            <Sparkles className="size-3" /> Ideas:
+          </span>
+          {QUESTION_TEMPLATES.map((tpl, idx) => (
+            <button
+              key={tpl}
+              type="button"
+              onClick={() => setQuestion(tpl)}
+              className="rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors hover:bg-white/15"
+              style={{ background: 'var(--surface-strong)', color: 'var(--ink-2)' }}
+            >
+              Template #{idx + 1}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="space-y-2.5">
         <span className="block text-xs font-semibold uppercase tracking-[0.08em]" style={{ color: 'var(--subtle)' }}>
@@ -122,7 +155,7 @@ function CreateForm({ onClose, onDone }: { onClose: () => void; onDone: () => vo
               key={p.seconds}
               type="button"
               onClick={() => applyPreset(p.seconds)}
-              className="min-h-9 rounded-xl text-xs font-semibold transition-colors hover:bg-white/15"
+              className="min-h-9 rounded-xl text-xs font-semibold tabular-nums transition-colors hover:bg-white/15"
               style={{
                 background: 'var(--surface-strong)',
                 color: 'var(--ink-2)',
