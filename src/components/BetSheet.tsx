@@ -24,7 +24,7 @@ interface BetSheetProps {
   onDone: () => void
 }
 
-const QUICK_AMOUNTS = ['1', '5', '10']
+const QUICK_AMOUNTS = ['1', '5', '10', '25', '50', '100']
 
 function toRaw(value: string): bigint {
   try {
@@ -112,7 +112,7 @@ function BetForm({
   }
 
   let label: string
-  if (wrongChain) label = 'Switch to Arc Testnet'
+  if (wrongChain) label = 'Switch to Base'
   else if (raw === 0n) label = 'Enter an amount'
   else if (insufficient) label = 'Insufficient USDC'
   else if (approveTx.isPending || betTx.isPending) label = 'Confirm in wallet...'
@@ -128,44 +128,51 @@ function BetForm({
       </p>
 
       <div className="glass-inner rounded-2xl p-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2">
           <input
             inputMode="decimal"
             value={amount}
             autoFocus
-            aria-label="Bet amount in USDC"
+            aria-label="Custom bet amount in USDC"
             onChange={(event) => {
               const value = event.target.value.replace(/[^0-9.]/g, '')
               if (/^\d*\.?\d{0,6}$/.test(value)) setAmount(value)
             }}
-            placeholder="0.00"
-            className="display w-full bg-transparent text-4xl font-bold tabular-nums outline-none placeholder:text-slate-500"
+            placeholder="Custom amount"
+            className="display w-full bg-transparent text-3xl font-bold tabular-nums outline-none placeholder:text-slate-500"
             style={{ color: 'var(--ink)' }}
           />
-          <div className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: 'var(--subtle)' }}>
+          <div className="flex shrink-0 items-center gap-1.5 text-sm font-semibold" style={{ color: 'var(--subtle)' }}>
             <TokenUSDC variant="branded" size={20} /> USDC
           </div>
         </div>
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <div className="flex gap-2">
-            {QUICK_AMOUNTS.map((q) => (
-              <button
-                key={q}
-                onClick={() => setAmount(q)}
-                className="min-h-9 rounded-full px-3 text-xs font-semibold tabular-nums transition-colors hover:bg-white/15"
-                style={{ background: 'var(--surface-strong)', color: 'var(--ink-2)' }}
-              >
-                {q}
-              </button>
-            ))}
-          </div>
+
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {QUICK_AMOUNTS.map((q) => (
+            <button
+              key={q}
+              type="button"
+              onClick={() => setAmount(q)}
+              className="min-h-8 rounded-full px-3 text-xs font-semibold tabular-nums transition-colors hover:bg-white/15"
+              style={{
+                background: amount === q ? 'var(--accent)' : 'var(--surface-strong)',
+                color: amount === q ? 'var(--accent-ink)' : 'var(--ink-2)',
+              }}
+            >
+              ${q}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-3 flex justify-end">
           <button
+            type="button"
             disabled={!address || balanceRaw === 0n}
             onClick={() => setAmount(formatUsdc(balanceRaw))}
             className="text-xs font-semibold tabular-nums disabled:opacity-40"
             style={{ color: 'var(--accent)' }}
           >
-            {address ? `Balance ${formatUsdc(balanceRaw)} · Max` : 'Connect to see balance'}
+            {address ? `Balance: ${formatUsdc(balanceRaw)} USDC · Max` : 'Connect to see balance'}
           </button>
         </div>
       </div>
