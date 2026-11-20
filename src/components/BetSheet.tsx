@@ -1,60 +1,224 @@
 import { useState } from 'react'
-import { MARKET_ADDRESS } from '../lib/market'
+import { toast } from 'sonner'
+import { ExternalLink, Loader2 } from 'lucide-react'
+import { TokenUSDC } from '@web3icons/react'
+import { useAccount, useReadContract, useSwitchChain } from 'wagmi'
+import { erc20Abi } from 'viem'
+import { buildTxExplorerUrl } from '@/onchain-facts'
+import { formatUsdc, parseUsdc } from '@/onchain-money'
+import { ConnectKitButton } from 'connectkit'
+import { Sheet } from './Sheet'
+import { useTx } from '@/hooks/useTx'
+import {
+  ARC_CHAIN_ID,
+  MARKET_ADDRESS,
+  USDC_ADDRESS,
+  estimatePayout,
+  market,
+  type MarketView,
+} from '@/lib/market'
 
-export function Footer() {
-  const [copied, setCopied] = useState(false)
+interface BetSheetProps {
+  target: { market: MarketView; isYes: boolean } | null
+  onClose: () => void
+  onDone: () => void
+}
 
-  function handleCopy() {
-    navigator.clipboard.writeText('jamesbond.oo7')
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+const QUICK_AMOUNTS = ['1', '5', '10']
+
+function toRaw(value: string): bigint {
+  try {
+    return value ? parseUsdc(value) : 0n
+  } catch {
+    return 0n
+  }
+}
+
+export function BetSheet({ target, onClose, onDone }: BetSheetProps) {
+  return (
+    <Sheet open={!!target} title={target?.isYes ? 'Bet YES' : 'Bet NO'} onClose={onClose}>
+      {target && <BetForm key={`${target.market.id}-${target.isYes}`} target={target} onDone={onDone} />}
+    </Sheet>
+  )
+}
+
+function BetForm({
+  target,
+  onDone,
+}: {
+  target: { market: MarketView; isYes: boolean }
+  onDone: () => void
+}) {
+  const { market: m, isYes } = target
+  const { address, isConnected, chainId } = useAccount()
+  const { switchChain } = useSwitchChain()
+  const [amount, setAmount] = useState('')
+  const raw = toRaw(amount)
+
+  const balance = useReadContract({
+    address: USDC_ADDRESS,
+    abi: erc20Abi,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+    chainId: ARC_CHAIN_ID,
+    query: { enabled: !!address },
+  })
+  const allowance = useReadContract({
+    address: USDC_ADDRESS,
+    abi: erc20Abi,
+    functionName: 'allowance',
+    args: address && MARKET_ADDRESS ? [address, MARKET_ADDRESS] : undefined,
+    chainId: ARC_CHAIN_ID,
+    query: { enabled: !!address && !!MARKET_ADDRESS },
+  })
+
+  const approveTx = useTx(() => {
+    void allowance.refetch()
+  })
+  const betTx = useTx(() => {
+    toast.success('Bet placed')
+    void balance.refetch()
+    void allowance.refetch()
+    onDone()
+  })
+
+  const balanceRaw = balance.data ?? 0n
+  const allowanceRaw = allowance.data ?? 0n
+  const needsApproval = raw > 0n && allowanceRaw < raw
+  const insufficient = raw > balanceRaw
+  const wrongChain = isConnected && chainId !== ARC_CHAIN_ID
+  const estimate = estimatePayout(m, isYes, raw)
+  const busy = approveTx.isPending || approveTx.isConfirming || betTx.isPending || betTx.isConfirming
+  const sideColor = isYes ? 'var(--success)' : 'var(--danger)'
+
+  const submit = () => {
+    if (!MARKET_ADDRESS || raw === 0n) return
+    if (needsApproval) {
+      void approveTx.send({
+        address: USDC_ADDRESS,
+        abi: erc20Abi,
+        functionName: 'approve',
+        args: [MARKET_ADDRESS, raw],
+        chainId: ARC_CHAIN_ID,
+      })
+      return
+    }
+    void betTx.send({
+      address: MARKET_ADDRESS,
+      ...market,
+      functionName: 'bet',
+      args: [BigInt(m.id), isYes, raw],
+    })
   }
 
-  const shortAddress = MARKET_ADDRESS
-    ? `${MARKET_ADDRESS.slice(0, 6)}...${MARKET_ADDRESS.slice(-4)}`
-    : ''
+  let label: string
+  if (wrongChain) label = 'Switch to Arc Testnet'
+  else if (raw === 0n) label = 'Enter an amount'
+  else if (insufficient) label = 'Insufficient USDC'
+  else if (approveTx.isPending || betTx.isPending) label = 'Confirm in wallet...'
+  else if (approveTx.isConfirming) label = 'Confirming allowance...'
+  else if (betTx.isConfirming) label = 'Confirming bet...'
+  else if (needsApproval) label = 'Step 1 of 2: Allow USDC'
+  else label = isYes ? 'Bet YES' : 'Bet NO'
 
   return (
-    <footer className="mt-16 border-t pt-6 text-sm" style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}>
-      <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-          <p className="font-medium">Made by JamesBondOO7</p>
-          {MARKET_ADDRESS && (
-            <>
-              <span>•</span>
-              <a
-                href={['https://basescan.org', MARKET_ADDRESS].join('/')}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-mono text-xs underline-offset-4 hover:underline"
-                style={{ color: 'var(--ink-2)' }}
-              >
-                Contract: {shortAddress}
-              </a>
-            </>
-          )}
-        </div>
+    <div className="space-y-4">
+      <p className="text-pretty text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+        {m.question}
+      </p>
 
-        <div className="flex items-center gap-3">
-          <a
-            href={['https://x.com', 'OO7BondJames007'].join('/')}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-full px-3.5 py-1.5 text-xs font-medium transition-opacity hover:opacity-80"
-            style={{ background: 'var(--surface)', color: 'var(--ink-2)', border: '1px solid var(--border)' }}
-          >
-            X: @OO7BondJames007
-          </a>
+      <div className="glass-inner rounded-2xl p-4">
+        <div className="flex items-center gap-2">
+          <input
+            inputMode="decimal"
+            value={amount}
+            autoFocus
+            aria-label="Bet amount in USDC"
+            onChange={(event) => {
+              const value = event.target.value.replace(/[^0-9.]/g, '')
+              if (/^\d*\.?\d{0,6}$/.test(value)) setAmount(value)
+            }}
+            placeholder="0.00"
+            className="display w-full bg-transparent text-4xl font-bold tabular-nums outline-none placeholder:text-slate-500"
+            style={{ color: 'var(--ink)' }}
+          />
+          <div className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: 'var(--subtle)' }}>
+            <TokenUSDC variant="branded" size={20} /> USDC
+          </div>
+        </div>
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <div className="flex gap-2">
+            {QUICK_AMOUNTS.map((q) => (
+              <button
+                key={q}
+                onClick={() => setAmount(q)}
+                className="min-h-9 rounded-full px-3 text-xs font-semibold tabular-nums transition-colors hover:bg-white/15"
+                style={{ background: 'var(--surface-strong)', color: 'var(--ink-2)' }}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
           <button
-            type="button"
-            onClick={handleCopy}
-            className="rounded-full px-3.5 py-1.5 text-xs font-medium transition-opacity hover:opacity-80"
-            style={{ background: 'var(--surface)', color: 'var(--ink-2)', border: '1px solid var(--border)' }}
+            disabled={!address || balanceRaw === 0n}
+            onClick={() => setAmount(formatUsdc(balanceRaw))}
+            className="text-xs font-semibold tabular-nums disabled:opacity-40"
+            style={{ color: 'var(--accent)' }}
           >
-            {copied ? 'Discord: Copied!' : 'Discord: jamesbond.oo7'}
+            {address ? `Balance ${formatUsdc(balanceRaw)} · Max` : 'Connect to see balance'}
           </button>
         </div>
       </div>
-    </footer>
+
+      <dl className="space-y-2 text-sm">
+        <div className="flex justify-between">
+          <dt style={{ color: 'var(--subtle)' }}>Your side</dt>
+          <dd className="font-semibold" style={{ color: sideColor }}>
+            {isYes ? 'YES' : 'NO'}
+          </dd>
+        </div>
+        <div className="flex justify-between">
+          <dt style={{ color: 'var(--subtle)' }}>Estimated payout if you win</dt>
+          <dd className="font-semibold tabular-nums">{raw > 0n ? `${formatUsdc(estimate)} USDC` : '-'}</dd>
+        </div>
+        <p className="text-xs" style={{ color: 'var(--subtle)' }}>
+          The estimate changes as other people bet. Winners share the losing side's pool.
+        </p>
+      </dl>
+
+      {!isConnected ? (
+        <ConnectKitButton.Custom>
+          {({ show }) => (
+            <button
+              onClick={show}
+              className="btn-primary min-h-12 w-full rounded-2xl text-sm font-semibold transition-all active:scale-[0.99]"
+            >
+              Connect wallet
+            </button>
+          )}
+        </ConnectKitButton.Custom>
+      ) : (
+        <button
+          disabled={!wrongChain && (raw === 0n || insufficient || busy)}
+          onClick={wrongChain ? () => switchChain({ chainId: ARC_CHAIN_ID }) : submit}
+          className="btn-primary flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm font-semibold transition-all active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {busy && <Loader2 className="size-4 animate-spin" />}
+          {label}
+        </button>
+      )}
+
+      {betTx.isSuccess && betTx.hash && (
+        <a
+          href={buildTxExplorerUrl(ARC_CHAIN_ID, betTx.hash)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-1 text-xs font-semibold"
+          style={{ color: 'var(--success)' }}
+        >
+          Bet confirmed. View on explorer <ExternalLink className="size-3" />
+        </a>
+      )}
+    </div>
   )
 }
