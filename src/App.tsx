@@ -35,6 +35,14 @@ function BaseLogo({ className = 'size-9' }: { className?: string }) {
   )
 }
 
+function getMarketText(market: MarketView): string {
+  const record = market as unknown as Record<string, unknown>
+  for (const key of ['question', 'title', 'prompt', 'description', 'name']) {
+    if (typeof record[key] === 'string') return record[key]
+  }
+  return ''
+}
+
 export default function App() {
   const now = useNow()
   const { markets, total, owner, isLoading, isError, refetchAll } = useMarkets()
@@ -55,7 +63,7 @@ export default function App() {
 
   const query = search.trim().toLowerCase()
   const searchedMarkets = query
-    ? markets.filter((m) => m.question.toLowerCase().includes(query))
+    ? markets.filter((m) => getMarketText(m).toLowerCase().includes(query))
     : markets
 
   const visible = searchedMarkets.filter((m) => matchesFilter(m, filter))
@@ -236,8 +244,3 @@ export default function App() {
             </a>
 
             <button
-              type="button"
-              onClick={copyDiscord}
-              title="Click to copy Discord username"
-              className="flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium transition-opacity hover:opacity-80"
-              style={{
