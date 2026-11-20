@@ -70,13 +70,10 @@ export function MarketCard({ data, now, owner, onBet, onChanged }: MarketCardPro
     })
   }
 
-  const shareOnX = () => {
-    const odds = pct === null ? '50% YES / 50% NO' : `${Math.round(yes)}% YES / ${Math.round(100 - yes)}% NO`
-    const text = `"${data.question}"\n\nCurrent odds: ${odds} • Pool: ${formatUsdc(pool)} USDC\n\nBet on Base Prediction Market:`
-    const appUrl = window.location.origin
-    const intentUrl = `https://x.com{encodeURIComponent(text)}&url=${encodeURIComponent(appUrl)}`
-    window.open(intentUrl, '_blank', 'noopener,noreferrer')
-  }
+  const odds = pct === null ? '50% YES / 50% NO' : `${Math.round(yes)}% YES / ${Math.round(100 - yes)}% NO`
+  const shareText = `"${data.question}"\n\nCurrent odds: ${odds} • Pool: ${formatUsdc(pool)} USDC\n\nBet on Base Prediction Market:`
+  const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://vercel.app'
+  const shareUrl = `https://x.com{encodeURIComponent(shareText)}&url=${encodeURIComponent(appUrl)}`
 
   const hasPosition = data.yesStake > 0n || data.noStake > 0n
   const resolveBusy = resolveTx.isPending || resolveTx.isConfirming
@@ -103,9 +100,10 @@ export function MarketCard({ data, now, owner, onBet, onChanged }: MarketCardPro
           <span className="flex items-center gap-1 text-xs tabular-nums" style={{ color: 'var(--subtle)' }}>
             <Clock className="size-3" /> {timing}
           </span>
-          <button
-            type="button"
-            onClick={shareOnX}
+          <a
+            href={shareUrl}
+            target="_blank"
+            rel="noopener noreferrer"
             title="Share market on X"
             aria-label="Share market on X"
             className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-opacity hover:opacity-80"
@@ -113,7 +111,7 @@ export function MarketCard({ data, now, owner, onBet, onChanged }: MarketCardPro
           >
             <Share2 className="size-3" />
             <span>Share</span>
-          </button>
+          </a>
         </div>
       </div>
 
