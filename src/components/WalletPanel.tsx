@@ -2,7 +2,7 @@ import { ExternalLink, Plus } from 'lucide-react'
 import { TokenUSDC } from '@web3icons/react'
 import { ConnectKitButton } from 'connectkit'
 import { erc20Abi } from 'viem'
-import { useAccount, useReadContract } from 'wagmi'
+import { useAccount, useReadContract, useSwitchChain } from 'wagmi'
 import { buildAddressExplorerUrl } from '@/onchain-facts'
 import { formatUsdc } from '@/onchain-money'
 import { ARC_CHAIN, ARC_CHAIN_ID, MARKET_ADDRESS, USDC_ADDRESS, shortAddress, type MarketView } from '@/lib/market'
@@ -15,6 +15,7 @@ interface WalletPanelProps {
 
 export function WalletPanel({ markets, total, onCreate }: WalletPanelProps) {
   const { address, isConnected, chainId } = useAccount()
+  const { switchChain, isPending: isSwitching } = useSwitchChain()
   const balance = useReadContract({
     address: USDC_ADDRESS,
     abi: erc20Abi,
@@ -25,6 +26,7 @@ export function WalletPanel({ markets, total, onCreate }: WalletPanelProps) {
   })
 
   const pooled = markets.reduce((sum, m) => sum + m.totalYes + m.totalNo, 0n)
+  const myStaked = markets.reduce((sum, m) => sum + m.yesStake + m.noStake, 0n)
   const wrongChain = isConnected && chainId !== ARC_CHAIN_ID
 
   return (
@@ -46,6 +48,16 @@ export function WalletPanel({ markets, total, onCreate }: WalletPanelProps) {
             <p className="mt-1.5 text-xs" style={{ color: wrongChain ? 'var(--danger)' : 'var(--muted)' }}>
               {wrongChain ? 'Wrong network. Switch to Base to bet.' : `${ARC_CHAIN.name} · ${shortAddress(address ?? '')}`}
             </p>
+            {wrongChain && (
+              <button
+                type="button"
+                disabled={isSwitching}
+                onClick={() => switchChain({ chainId: ARC_CHAIN_ID })}
+                className="btn-primary mt-3 min-h-10 w-full rounded-xl text-xs font-semibold transition-opacity disabled:opacity-50"
+              >
+                {isSwitching ? 'Switching...' : 'Switch to Base'}
+              </button>
+            )}
           </>
         ) : (
           <>
@@ -81,6 +93,14 @@ export function WalletPanel({ markets, total, onCreate }: WalletPanelProps) {
             <dd className="display mt-0.5 text-2xl font-semibold tabular-nums">{formatUsdc(pooled)}</dd>
           </div>
         </dl>
+        {isConnected && myStaked > 0n && (
+          <div className="mt-4 flex items-center justify-between border-t pt-3 text-xs" style={{ borderColor: 'var(--border)' }}>
+            <span style={{ color: 'var(--subtle)' }}>Your total staked</span>
+            <span className="font-semibold tabular-nums" style={{ color: 'var(--ink)' }}>
+              {formatUsdc(myStaked)} USDC
+            </span>
+          </div>
+        )}
         <button
           onClick={onCreate}
           className="btn-primary mt-5 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm font-semibold transition-all active:scale-[0.99]"
