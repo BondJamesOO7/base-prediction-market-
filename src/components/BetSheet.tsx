@@ -88,6 +88,7 @@ function BetForm({
   const insufficient = raw > balanceRaw
   const wrongChain = isConnected && chainId !== ARC_CHAIN_ID
   const estimate = estimatePayout(m, isYes, raw)
+  const multiplier = raw > 0n ? (Number(estimate) / Number(raw)).toFixed(2) : null
   const busy = approveTx.isPending || approveTx.isConfirming || betTx.isPending || betTx.isConfirming
   const sideColor = isYes ? 'var(--success)' : 'var(--danger)'
 
@@ -186,7 +187,23 @@ function BetForm({
         </div>
         <div className="flex justify-between">
           <dt style={{ color: 'var(--subtle)' }}>Estimated payout if you win</dt>
-          <dd className="font-semibold tabular-nums">{raw > 0n ? `${formatUsdc(estimate)} USDC` : '-'}</dd>
+          <dd className="flex items-center gap-1.5 font-semibold tabular-nums">
+            {raw > 0n ? (
+              <>
+                <span>{formatUsdc(estimate)} USDC</span>
+                {multiplier && (
+                  <span
+                    className="rounded-full px-2 py-0.5 text-xs font-semibold"
+                    style={{ background: 'rgba(141,216,159,0.16)', color: 'var(--success)' }}
+                  >
+                    {multiplier}x
+                  </span>
+                )}
+              </>
+            ) : (
+              '-'
+            )}
+          </dd>
         </div>
         <p className="text-xs" style={{ color: 'var(--subtle)' }}>
           The estimate changes as other people bet. Winners share the losing side's pool.
