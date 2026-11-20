@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { ConnectKitButton } from 'connectkit'
-import { Check, Copy, Loader2, Search, TriangleAlert, X } from 'lucide-react'
+import { Loader2, Search, TriangleAlert, X } from 'lucide-react'
 import { BetSheet } from './components/BetSheet'
 import { CreateSheet } from './components/CreateSheet'
+import { Footer } from './components/Footer'
 import { MarketCard } from './components/MarketCard'
 import { WalletPanel } from './components/WalletPanel'
 import { useMarkets } from './hooks/useMarkets'
@@ -10,10 +11,6 @@ import { useNow } from './hooks/useNow'
 import { MARKET_ADDRESS, getStatus, type MarketView } from './lib/market'
 
 type Filter = 'all' | 'open' | 'pending' | 'settled' | 'mine'
-
-const X_HANDLE = 'OO7BondJames007'
-const X_PROFILE_URL = ['https://x.com', X_HANDLE].join('/')
-const DISCORD_HANDLE = 'jamesbond.oo7'
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: 'all', label: 'All' },
@@ -27,10 +24,7 @@ function BaseLogo({ className = 'size-9' }: { className?: string }) {
   return (
     <svg viewBox="0 0 111 111" fill="none" xmlns="http://w3.org" className={className} aria-hidden="true">
       <rect width="111" height="111" rx="26" fill="#0052FF" />
-      <path
-        d="M54.921 91C74.294 91 90 75.33 90 56C90 36.67 74.294 21 54.921 21C36.609 21 21.584 35.03 20 52.893H66.085V59.107H20C21.584 76.97 36.609 91 54.921 91Z"
-        fill="white"
-      />
+      <path d="M54.921 91C74.294 91 90 75.33 90 56C90 36.67 74.294 21 54.921 21C36.609 21 21.584 35.03 20 52.893H66.085V59.107H20C21.584 76.97 36.609 91 54.921 91Z" fill="white" />
     </svg>
   )
 }
@@ -50,7 +44,6 @@ export default function App() {
   const [search, setSearch] = useState('')
   const [creating, setCreating] = useState(false)
   const [bet, setBet] = useState<{ market: MarketView; isYes: boolean } | null>(null)
-  const [copiedDiscord, setCopiedDiscord] = useState(false)
 
   function matchesFilter(m: MarketView, targetFilter: Filter) {
     const status = getStatus(m, now)
@@ -62,10 +55,7 @@ export default function App() {
   }
 
   const query = search.trim().toLowerCase()
-  const searchedMarkets = query
-    ? markets.filter((m) => getMarketText(m).toLowerCase().includes(query))
-    : markets
-
+  const searchedMarkets = query ? markets.filter((m) => getMarketText(m).toLowerCase().includes(query)) : markets
   const visible = searchedMarkets.filter((m) => matchesFilter(m, filter))
 
   const counts: Record<Filter, number> = {
@@ -74,12 +64,6 @@ export default function App() {
     pending: searchedMarkets.filter((m) => matchesFilter(m, 'pending')).length,
     settled: searchedMarkets.filter((m) => matchesFilter(m, 'settled')).length,
     mine: searchedMarkets.filter((m) => matchesFilter(m, 'mine')).length,
-  }
-
-  function copyDiscord() {
-    navigator.clipboard.writeText(DISCORD_HANDLE)
-    setCopiedDiscord(true)
-    setTimeout(() => setCopiedDiscord(false), 2000)
   }
 
   return (
@@ -98,10 +82,7 @@ export default function App() {
       </header>
 
       {!MARKET_ADDRESS && (
-        <div
-          className="glass mb-6 flex items-start gap-3 rounded-2xl p-4 text-sm"
-          style={{ borderColor: 'var(--danger)' }}
-        >
+        <div className="glass mb-6 flex items-start gap-3 rounded-2xl p-4 text-sm" style={{ borderColor: 'var(--danger)' }}>
           <TriangleAlert className="mt-0.5 size-4 shrink-0" style={{ color: 'var(--danger)' }} />
           <span>Contract address missing. Set VITE_MARKET_ADDRESS in .env and restart the dev server.</span>
         </div>
@@ -112,10 +93,7 @@ export default function App() {
 
         <main>
           <div className="relative mb-3">
-            <Search
-              className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2"
-              style={{ color: 'var(--muted)' }}
-            />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2" style={{ color: 'var(--muted)' }} />
             <input
               type="text"
               value={search}
@@ -123,11 +101,7 @@ export default function App() {
               placeholder="Search markets..."
               aria-label="Search markets"
               className="h-10 w-full rounded-full pl-10 pr-9 text-sm outline-none transition-colors"
-              style={{
-                background: 'var(--surface)',
-                color: 'var(--ink)',
-                border: '1px solid var(--border)',
-              }}
+              style={{ background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--border)' }}
             />
             {search && (
               <button
@@ -161,9 +135,7 @@ export default function App() {
                   <span>{f.label}</span>
                   <span
                     className="rounded-full px-1.5 py-0.5 text-xs tabular-nums"
-                    style={{
-                      background: isSelected ? 'rgba(255, 255, 255, 0.2)' : 'rgba(128, 128, 128, 0.15)',
-                    }}
+                    style={{ background: isSelected ? 'rgba(255, 255, 255, 0.2)' : 'rgba(128, 128, 128, 0.15)' }}
                   >
                     {counts[f.id]}
                   </span>
@@ -190,9 +162,7 @@ export default function App() {
 
           {!isLoading && !isError && visible.length === 0 && (
             <div className="glass rounded-3xl p-10 text-center">
-              <p className="display text-xl font-semibold">
-                {total === 0 ? 'No markets yet' : 'Nothing here'}
-              </p>
+              <p className="display text-xl font-semibold">{total === 0 ? 'No markets yet' : 'Nothing here'}</p>
               <p className="mx-auto mt-1 max-w-xs text-sm" style={{ color: 'var(--muted)' }}>
                 {total === 0
                   ? 'Create the first market and let people bet on the answer.'
@@ -218,29 +188,9 @@ export default function App() {
         </main>
       </div>
 
-      <footer
-        className="mt-16 border-t pt-6 text-sm"
-        style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
-      >
-        <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <p className="font-medium">Made by JamesBondOO7</p>
-
-          <div className="flex items-center gap-3">
-            <a
-              href={X_PROFILE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium transition-opacity hover:opacity-80"
-              style={{
-                background: 'var(--surface)',
-                color: 'var(--ink-2)',
-                border: '1px solid var(--border)',
-              }}
-            >
-              <svg className="size-3.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              </svg>
-              <span>@{X_HANDLE}</span>
-            </a>
-
-            <button
+      <Footer />
+      <CreateSheet open={creating} onClose={() => setCreating(false)} onDone={refetchAll} />
+      <BetSheet target={bet} onClose={() => setBet(null)} onDone={refetchAll} />
+    </div>
+  )
+}
