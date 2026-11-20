@@ -158,7 +158,7 @@ export default function App() {
 
           <div className="flex items-center gap-3">
             <a
-              href={`https://x.com{X_HANDLE}`}
+              href="https://x.com"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium transition-opacity hover:opacity-80"
