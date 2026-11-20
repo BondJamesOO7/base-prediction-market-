@@ -72,8 +72,9 @@ export function MarketCard({ data, now, owner, onBet, onChanged }: MarketCardPro
 
   const odds = pct === null ? '50% YES / 50% NO' : `${Math.round(yes)}% YES / ${Math.round(100 - yes)}% NO`
   const shareText = `"${data.question}"\n\nCurrent odds: ${odds} • Pool: ${formatUsdc(pool)} USDC\n\nBet on Base Prediction Market:`
-  const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://vercel.app'
-  const shareUrl = `https://x.com{encodeURIComponent(shareText)}&url=${encodeURIComponent(appUrl)}`
+  const appUrl = typeof window !== 'undefined' ? window.location.origin : ''
+  const xIntentBase = ['https://x.com', 'intent', 'tweet'].join('/')
+  const shareUrl = `${xIntentBase}?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(appUrl)}`
 
   const hasPosition = data.yesStake > 0n || data.noStake > 0n
   const resolveBusy = resolveTx.isPending || resolveTx.isConfirming
