@@ -1,34 +1,35 @@
-# Arc Prediction Market
+# Base Prediction Market
 
-A YES/NO prediction market contract for Arc Testnet. Anyone can create a market, bet USDC on YES or NO, and winners share the losing side's pool. Unresolved markets refund everyone.
+Um mercado descentralizado de previsões YES/NO construído na **Base Mainnet** ([base-prediction-market-kappa.vercel.app](https://vercel.app)).
 
-Built with [Arc Studio](https://studio.arc.io)
+## Recursos principais
+- **Apostas Parimutuel:** Aposte em USDC (valores personalizados ou pré-definidos).
+- **Estimador de Payout:** Cálculo em tempo real de retornos e multiplicadores.
+- **Filtros e Busca:** Navegue por status com contadores ao vivo.
+- **Compartilhamento no X:** Publique odds e pools com um clique.
+- **Reembolso Automático:** Resgate integral em mercados não resolvidos no prazo.
 
-## Tech stack
+## Stack Tecnológica
+- **Smart Contracts:** Solidity 0.8.28 (OpenZeppelin + Foundry)
+- **Frontend:** React, Vite, TypeScript, Tailwind CSS
+- **Web3:** wagmi, viem, ConnectKit
 
-- Solidity 0.8.28 with OpenZeppelin, built and tested with Foundry
-- React, Vite, TypeScript, Tailwind CSS
-- wagmi, viem, ConnectKit
+## Desenvolvimento
 
-## Development
+```bash
+bun install
+bun run dev
+bun run contracts:build
+bun run contracts:test
+```
 
-Prerequisites: Bun and Foundry.
+### Variáveis de Ambiente
+- `VITE_MARKET_ADDRESS`: Endereço do contrato na Base Mainnet.
 
-Install: `bun install`
+## Documentação
+- `docs/guia-deploy.md`: Guia de deploy em Português
+- `docs/ArcPredictionMarket.abi.json`: ABI do contrato
 
-Environment variables:
+---
 
-- `VITE_MARKET_ADDRESS`: address of the deployed ArcPredictionMarket contract on Arc Testnet (public value).
-
-What the app does: connect a wallet, create markets, bet USDC on YES or NO, set the result as the market creator, and claim winnings or refunds.
-
-Run the app: `bun run dev`
-
-Build the contracts: `bun run contracts:build`
-
-Test the contracts: `bun run contracts:test`
-
-## Docs
-
-- `docs/guia-deploy.md`: step-by-step guide in Portuguese (how it works, network details, faucet, checklist)
-- `docs/ArcPredictionMarket.abi.json`: contract ABI for the frontend
+Criado por **JamesBondOO7** • X: [@OO7BondJames007](https://x.com) • Discord: `jamesbond.oo7`
