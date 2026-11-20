@@ -154,7 +154,7 @@ export default function App() {
         style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
       >
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <p>Built on Base • Base Prediction Market</p>
+          <p className="font-medium">Made by JamesBondOO7</p>
 
           <div className="flex items-center gap-3">
             <a
