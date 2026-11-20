@@ -12,6 +12,7 @@ import { MARKET_ADDRESS, getStatus, type MarketView } from './lib/market'
 type Filter = 'all' | 'open' | 'pending' | 'settled' | 'mine'
 
 const X_HANDLE = 'OO7BondJames007'
+const X_PROFILE_URL = ['https://x.com', X_HANDLE].join('/')
 const DISCORD_HANDLE = 'jamesbond.oo7'
 
 const FILTERS: { id: Filter; label: string }[] = [
@@ -158,7 +159,7 @@ export default function App() {
 
           <div className="flex items-center gap-3">
             <a
-              href="https://x.com"
+              href={X_PROFILE_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium transition-opacity hover:opacity-80"
