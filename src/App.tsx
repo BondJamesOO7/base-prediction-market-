@@ -4,6 +4,7 @@ import { Loader2, Search, TriangleAlert, X } from 'lucide-react'
 import { BetSheet } from './components/BetSheet'
 import { CreateSheet } from './components/CreateSheet'
 import { Footer } from './components/Footer'
+import { HowItWorksModal } from './components/HowItWorksModal'
 import { MarketCard } from './components/MarketCard'
 import { ThemeToggle } from './components/ThemeToggle'
 import { WalletPanel } from './components/WalletPanel'
@@ -75,15 +76,17 @@ export default function App() {
           <div>
             <h1 className="display text-balance text-3xl font-bold sm:text-4xl">Base Prediction Market</h1>
             <p className="mt-1 text-sm" style={{ color: 'var(--muted)' }}>
-              Bet USDC on YES or NO. Winners share the losing side's pool.
+              Bet USDC on YES or NO. Winners share the losing side&apos;s pool.
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2.5">
+          <HowItWorksModal />
           <ThemeToggle />
           <ConnectKitButton />
         </div>
       </header>
+
       {!MARKET_ADDRESS && (
         <div className="glass mb-6 flex items-start gap-3 rounded-2xl p-4 text-sm" style={{ borderColor: 'var(--danger)' }}>
           <TriangleAlert className="mt-0.5 size-4 shrink-0" style={{ color: 'var(--danger)' }} />
@@ -192,8 +195,14 @@ export default function App() {
       </div>
 
       <Footer />
-      <CreateSheet open={creating} onClose={() => setCreating(false)} onDone={refetchAll} />
-      <BetSheet target={bet} onClose={() => setBet(null)} onDone={refetchAll} />
+
+      <CreateSheet open={creating} onClose={() => setCreating(false)} onCreated={refetchAll} />
+      <BetSheet
+        market={bet?.market ?? null}
+        isYes={bet?.isYes ?? true}
+        onClose={() => setBet(null)}
+        onPlaced={refetchAll}
+      />
     </div>
   )
 }
