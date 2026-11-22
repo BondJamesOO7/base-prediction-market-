@@ -2,12 +2,12 @@
 
 A decentralized, non-custodial **Parimutuel Prediction Market** built on **Base Sepolia** using **USDC**. Users can predict real-world outcomes across Crypto, Sports, Macro, Tech, and Culture, share dynamic multipliers, and claim payouts or refunds directly on-chain.
 
-## Live Demo & Contracts
+## Live App & Contracts
 
+- **Live App:** [base-prediction-market-eta.vercel.app](https://vercel.app)
 - **Network:** Base Sepolia Testnet (`Chain ID: 84532`)
 - **Prediction Market Contract:** [`0x3664C64507a0d017B5dA163418389C851b68F62F`](https://basescan.org)
 - **Collateral Token (USDC):** `0x036CbD53842c5426634e7929541eC2318f3dCF7e`
-- **Repository:** [://github.com](https://://github.com)
 
 ## Key Features
 
@@ -36,7 +36,7 @@ A decentralized, non-custodial **Parimutuel Prediction Market** built on **Base 
 
 1. **Clone the repository:**
    ```bash
-   git clone https://://github.com.git
+   git clone https://github.com
    cd base-prediction-market-
    ```
 
