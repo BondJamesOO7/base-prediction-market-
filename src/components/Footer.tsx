@@ -1,5 +1,9 @@
 import { Github, ExternalLink } from "lucide-react";
 
+const BASESCAN_LINK = "https://basescan.org" + "/address/0x3009f6e4dB56BbF0BD7e86CbAfAa81505E96182D";
+const GITHUB_LINK = "https://github.com" + "/BondJamesOO7/base-prediction-market-";
+const X_LINK = "https://x.com" + "/OO7BondJames007";
+
 export function Footer() {
   return (
     <footer className="mt-16 border-t py-8" style={{ borderColor: "var(--border)" }}>
@@ -17,7 +21,7 @@ export function Footer() {
 
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
             <a
-              href="https://basescan.org"
+              href={BASESCAN_LINK}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 transition-opacity hover:opacity-80"
@@ -30,7 +34,7 @@ export function Footer() {
             <span style={{ color: "var(--border)" }}>|</span>
 
             <a
-              href="https://github.com"
+              href={GITHUB_LINK}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 transition-opacity hover:opacity-80"
@@ -44,7 +48,7 @@ export function Footer() {
             <span style={{ color: "var(--border)" }}>|</span>
 
             <a
-              href="https://x.com"
+              href={X_LINK}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 transition-opacity hover:opacity-80"
