@@ -21,6 +21,25 @@
   --danger: #e86d7a;
 }
 
+html.light {
+  --bg: #ffffff;
+  --bg-gradient: linear-gradient(180deg, #ffffff 0%, #f6f9ff 60%, #ebf2ff 100%);
+  --surface: rgba(255, 255, 255, 0.92);
+  --surface-strong: rgba(0, 82, 255, 0.06);
+  --surface-muted: #eef3fb;
+  --ink: #0a0b0d;
+  --ink-2: #1e293b;
+  --muted: #475569;
+  --subtle: #64748b;
+  --border: rgba(0, 82, 255, 0.15);
+  --border-strong: rgba(0, 82, 255, 0.45);
+  --accent: #0052ff;
+  --accent-hover: #0043d1;
+  --accent-ink: #ffffff;
+  --success: #16a34a;
+  --danger: #dc2626;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -33,6 +52,7 @@ body {
   background-attachment: fixed;
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
 .display {
@@ -51,9 +71,17 @@ body {
   -webkit-backdrop-filter: blur(24px) saturate(160%);
 }
 
+html.light .glass {
+  box-shadow: 0 8px 30px rgba(0, 82, 255, 0.06);
+}
+
 .glass-inner {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border);
+}
+
+html.light .glass-inner {
+  background: rgba(0, 82, 255, 0.04);
 }
 
 .btn-primary {
