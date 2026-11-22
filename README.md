@@ -4,7 +4,7 @@ A decentralized, non-custodial **Parimutuel Prediction Market** built on **Base 
 
 ## Live App & Contracts
 
-- **Live App:** [base-prediction-market-eta.vercel.app](https://vercel.app)
+- **Live App:** [base-prediction-market-kappa.vercel.app](https://vercel.app)
 - **Network:** Base Sepolia Testnet (`Chain ID: 84532`)
 - **Prediction Market Contract:** [`0x3664C64507a0d017B5dA163418389C851b68F62F`](https://basescan.org)
 - **Collateral Token (USDC):** `0x036CbD53842c5426634e7929541eC2318f3dCF7e`
