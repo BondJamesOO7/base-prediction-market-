@@ -24,7 +24,7 @@ interface BetSheetProps {
   onDone: () => void
 }
 
-const QUICK_AMOUNTS = ['1', '5', '10', '25', '50', '100']
+const QUICK_AMOUNTS = ['1']
 
 function toRaw(value: string): bigint {
   try {
@@ -237,10 +237,10 @@ function BetForm({
           href={buildTxExplorerUrl(ARC_CHAIN_ID, betTx.hash)}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1 text-xs font-semibold"
-          style={{ color: 'var(--success)' }}
+          className="flex items-center justify-center gap-1.5 text-xs font-semibold"
+          style={{ color: 'var(--accent)' }}
         >
-          Bet confirmed. View on explorer <ExternalLink className="size-3" />
+          View transaction on explorer <ExternalLink className="size-3.5" />
         </a>
       )}
     </div>
