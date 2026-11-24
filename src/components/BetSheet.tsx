@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { ExternalLink, Loader2 } from 'lucide-react'
 import { TokenUSDC } from '@web3icons/react'
@@ -41,6 +41,10 @@ export function BetSheet({ target, market, isYes, onClose, onDone, onPlaced }: B
   const activeMarket = target ? target.market : (market ?? null)
   const activeIsYes = target ? target.isYes : (isYes ?? true)
   const handleDone = onPlaced ?? onDone ?? (() => {})
+
+  useEffect(() => {
+    console.log('[BetSheet] state:', { activeMarket, activeIsYes })
+  }, [activeMarket, activeIsYes])
 
   return (
     <Sheet open={!!activeMarket} title={activeIsYes ? 'Bet YES' : 'Bet NO'} onClose={onClose}>
@@ -283,7 +287,3 @@ function BetForm({
         >
           View transaction on explorer <ExternalLink className="size-3.5" />
         </a>
-      )}
-    </div>
-  )
-}
