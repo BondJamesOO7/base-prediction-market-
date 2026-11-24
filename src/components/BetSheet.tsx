@@ -14,14 +14,17 @@ import {
   MARKET_ADDRESS,
   USDC_ADDRESS,
   estimatePayout,
-  market,
+  market as marketConfig,
   type MarketView,
 } from '@/lib/market'
 
 interface BetSheetProps {
-  target: { market: MarketView; isYes: boolean } | null
+  target?: { market: MarketView; isYes: boolean } | null
+  market?: MarketView | null
+  isYes?: boolean
   onClose: () => void
-  onDone: () => void
+  onDone?: () => void
+  onPlaced?: () => void
 }
 
 const QUICK_AMOUNTS = ['1', '5', '10', '25', '50', '100']
@@ -34,22 +37,34 @@ function toRaw(value: string): bigint {
   }
 }
 
-export function BetSheet({ target, onClose, onDone }: BetSheetProps) {
+export function BetSheet({ target, market, isYes, onClose, onDone, onPlaced }: BetSheetProps) {
+  const activeMarket = target ? target.market : (market ?? null)
+  const activeIsYes = target ? target.isYes : (isYes ?? true)
+  const handleDone = onPlaced ?? onDone ?? (() => {})
+
   return (
-    <Sheet open={!!target} title={target?.isYes ? 'Bet YES' : 'Bet NO'} onClose={onClose}>
-      {target && <BetForm key={`${target.market.id}-${target.isYes}`} target={target} onDone={onDone} />}
+    <Sheet open={!!activeMarket} title={activeIsYes ? 'Bet YES' : 'Bet NO'} onClose={onClose}>
+      {activeMarket && (
+        <BetForm
+          key={`${activeMarket.id}-${activeIsYes}`}
+          market={activeMarket}
+          isYes={activeIsYes}
+          onDone={handleDone}
+        />
+      )}
     </Sheet>
   )
 }
 
 function BetForm({
-  target,
+  market: m,
+  isYes,
   onDone,
 }: {
-  target: { market: MarketView; isYes: boolean }
+  market: MarketView
+  isYes: boolean
   onDone: () => void
 }) {
-  const { market: m, isYes } = target
   const { address, isConnected, chainId } = useAccount()
   const { switchChain } = useSwitchChain()
   const [amount, setAmount] = useState('')
@@ -87,7 +102,7 @@ function BetForm({
   const needsApproval = raw > 0n && allowanceRaw < raw
   const insufficient = raw > balanceRaw
   const wrongChain = isConnected && chainId !== ARC_CHAIN_ID
-  const estimate = estimatePayout(m, isYes, raw)
+  const estimate = raw > 0n ? estimatePayout(m, isYes, raw) : 0n
   const multiplier = raw > 0n ? (Number(estimate) / Number(raw)).toFixed(2) : null
   const busy = approveTx.isPending || approveTx.isConfirming || betTx.isPending || betTx.isConfirming
   const sideColor = isYes ? 'var(--success)' : 'var(--danger)'
@@ -107,7 +122,7 @@ function BetForm({
     }
     void betTx.send({
       address: MARKET_ADDRESS,
-      ...market,
+      ...marketConfig,
       functionName: 'bet',
       args: [BigInt(m.id), isYes, raw],
     })
@@ -176,6 +191,19 @@ function BetForm({
           >
             MAX
           </button>
+          {amount !== '' && (
+            <button
+              type="button"
+              onClick={() => setAmount('')}
+              className="min-h-8 rounded-full px-3 text-xs font-semibold transition-colors hover:bg-white/15"
+              style={{
+                background: 'var(--surface-strong)',
+                color: 'var(--subtle)',
+              }}
+            >
+              Clear
+            </button>
+          )}
         </div>
 
         <div className="mt-3 flex justify-end">
