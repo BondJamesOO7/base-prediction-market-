@@ -91,6 +91,7 @@ function BetForm({
   const multiplier = raw > 0n ? (Number(estimate) / Number(raw)).toFixed(2) : null
   const busy = approveTx.isPending || approveTx.isConfirming || betTx.isPending || betTx.isConfirming
   const sideColor = isYes ? 'var(--success)' : 'var(--danger)'
+  const isMaxSelected = balanceRaw > 0n && raw === balanceRaw
 
   const submit = () => {
     if (!MARKET_ADDRESS || raw === 0n) return
@@ -163,6 +164,18 @@ function BetForm({
               ${q}
             </button>
           ))}
+          <button
+            type="button"
+            disabled={!address || balanceRaw === 0n}
+            onClick={() => setAmount(formatUsdc(balanceRaw))}
+            className="min-h-8 rounded-full px-3 text-xs font-semibold uppercase tracking-wide transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-40"
+            style={{
+              background: isMaxSelected ? 'var(--accent)' : 'var(--surface-strong)',
+              color: isMaxSelected ? 'var(--accent-ink)' : 'var(--ink-2)',
+            }}
+          >
+            MAX
+          </button>
         </div>
 
         <div className="mt-3 flex justify-end">
@@ -173,7 +186,7 @@ function BetForm({
             className="text-xs font-semibold tabular-nums disabled:opacity-40"
             style={{ color: 'var(--accent)' }}
           >
-            {address ? `Balance: ${formatUsdc(balanceRaw)} USDC · Max` : 'Connect to see balance'}
+            {address ? `Balance: ${formatUsdc(balanceRaw)} USDC` : 'Connect to see balance'}
           </button>
         </div>
       </div>
