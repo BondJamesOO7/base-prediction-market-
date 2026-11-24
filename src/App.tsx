@@ -1,276 +1,208 @@
 import { useState } from 'react'
-import { toast } from 'sonner'
-import { ExternalLink, Loader2 } from 'lucide-react'
-import { TokenUSDC } from '@web3icons/react'
-import { useAccount, useReadContract, useSwitchChain } from 'wagmi'
-import { erc20Abi } from 'viem'
-import { buildTxExplorerUrl } from '@/onchain-facts'
-import { formatUsdc, parseUsdc } from '@/onchain-money'
 import { ConnectKitButton } from 'connectkit'
-import { Sheet } from './Sheet'
-import { useTx } from '@/hooks/useTx'
-import {
-  ARC_CHAIN_ID,
-  MARKET_ADDRESS,
-  USDC_ADDRESS,
-  estimatePayout,
-  market as marketConfig,
-  type MarketView,
-} from '@/lib/market'
+import { Loader2, Search, TriangleAlert, X } from 'lucide-react'
+import { BetSheet } from './components/BetSheet'
+import { CreateSheet } from './components/CreateSheet'
+import { Footer } from './components/Footer'
+import { HowItWorksModal } from './components/HowItWorksModal'
+import { MarketCard } from './components/MarketCard'
+import { ThemeToggle } from './components/ThemeToggle'
+import { WalletPanel } from './components/WalletPanel'
+import { useMarkets } from './hooks/useMarkets'
+import { useNow } from './hooks/useNow'
+import { MARKET_ADDRESS, getStatus, type MarketView } from './lib/market'
 
-interface BetSheetProps {
-  market: MarketView | null
-  isYes: boolean
-  onClose: () => void
-  onPlaced: () => void
-}
+type Filter = 'all' | 'open' | 'pending' | 'settled' | 'mine'
 
-const QUICK_AMOUNTS = ['1', '5', '10', '25', '50', '100']
+const FILTERS: { id: Filter; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'open', label: 'Open' },
+  { id: 'pending', label: 'Needs result' },
+  { id: 'settled', label: 'Settled' },
+  { id: 'mine', label: 'My bets' },
+]
 
-function toRaw(value: string): bigint {
-  try {
-    return value ? parseUsdc(value) : 0n
-  } catch {
-    return 0n
-  }
-}
-
-export function BetSheet({ market, isYes, onClose, onPlaced }: BetSheetProps) {
+function BaseLogo({ className = 'size-9' }: { className?: string }) {
   return (
-    <Sheet open={!!market} title={isYes ? 'Bet YES' : 'Bet NO'} onClose={onClose}>
-      {market && <BetForm key={`${market.id}-${isYes}`} market={market} isYes={isYes} onDone={onPlaced} />}
-    </Sheet>
+    <svg viewBox="0 0 111 111" fill="none" xmlns="http://w3.org" className={className} aria-hidden="true">
+      <rect width="111" height="111" rx="26" fill="#0052FF" />
+      <path d="M54.921 91C74.294 91 90 75.33 90 56C90 36.67 74.294 21 54.921 21C36.609 21 21.584 35.03 20 52.893H66.085V59.107H20C21.584 76.97 36.609 91 54.921 91Z" fill="white" />
+    </svg>
   )
 }
 
-function BetForm({
-  market: m,
-  isYes,
-  onDone,
-}: {
-  market: MarketView
-  isYes: boolean
-  onDone: () => void
-}) {
-  const { address, isConnected, chainId } = useAccount()
-  const { switchChain } = useSwitchChain()
-  const [amount, setAmount] = useState('')
-  const raw = toRaw(amount)
+function getMarketText(market: MarketView): string {
+  const record = market as unknown as Record<string, unknown>
+  for (const key of ['question', 'title', 'prompt', 'description', 'name']) {
+    if (typeof record[key] === 'string') return record[key]
+  }
+  return ''
+}
 
-  const balance = useReadContract({
-    address: USDC_ADDRESS,
-    abi: erc20Abi,
-    functionName: 'balanceOf',
-    args: address ? [address] : undefined,
-    chainId: ARC_CHAIN_ID,
-    query: { enabled: !!address },
-  })
-  const allowance = useReadContract({
-    address: USDC_ADDRESS,
-    abi: erc20Abi,
-    functionName: 'allowance',
-    args: address && MARKET_ADDRESS ? [address, MARKET_ADDRESS] : undefined,
-    chainId: ARC_CHAIN_ID,
-    query: { enabled: !!address && !!MARKET_ADDRESS },
-  })
+export default function App() {
+  const now = useNow()
+  const { markets, total, owner, isLoading, isError, refetchAll } = useMarkets()
+  const [filter, setFilter] = useState<Filter>('all')
+  const [search, setSearch] = useState('')
+  const [creating, setCreating] = useState(false)
+  const [bet, setBet] = useState<{ market: MarketView; isYes: boolean } | null>(null)
 
-  const approveTx = useTx(() => {
-    void allowance.refetch()
-  })
-  const betTx = useTx(() => {
-    toast.success('Bet placed')
-    void balance.refetch()
-    void allowance.refetch()
-    onDone()
-  })
-
-  const balanceRaw = balance.data ?? 0n
-  const allowanceRaw = allowance.data ?? 0n
-  const needsApproval = raw > 0n && allowanceRaw < raw
-  const insufficient = raw > balanceRaw
-  const wrongChain = isConnected && chainId !== ARC_CHAIN_ID
-  const estimate = estimatePayout(m, isYes, raw)
-  const multiplier = raw > 0n ? (Number(estimate) / Number(raw)).toFixed(2) : null
-  const busy = approveTx.isPending || approveTx.isConfirming || betTx.isPending || betTx.isConfirming
-  const sideColor = isYes ? 'var(--success)' : 'var(--danger)'
-  const isMaxSelected = balanceRaw > 0n && raw === balanceRaw
-
-  const submit = () => {
-    if (!MARKET_ADDRESS || raw === 0n) return
-    if (needsApproval) {
-      void approveTx.send({
-        address: USDC_ADDRESS,
-        abi: erc20Abi,
-        functionName: 'approve',
-        args: [MARKET_ADDRESS, raw],
-        chainId: ARC_CHAIN_ID,
-      })
-      return
-    }
-    void betTx.send({
-      address: MARKET_ADDRESS,
-      ...marketConfig,
-      functionName: 'bet',
-      args: [BigInt(m.id), isYes, raw],
-    })
+  function matchesFilter(m: MarketView, targetFilter: Filter) {
+    const status = getStatus(m, now)
+    if (targetFilter === 'open') return status === 'open'
+    if (targetFilter === 'pending') return status === 'awaiting'
+    if (targetFilter === 'settled') return status === 'resolved' || status === 'refund'
+    if (targetFilter === 'mine') return m.yesStake > 0n || m.noStake > 0n
+    return true
   }
 
-  let label: string
-  if (wrongChain) label = 'Switch to Base'
-  else if (raw === 0n) label = 'Enter an amount'
-  else if (insufficient) label = 'Insufficient USDC'
-  else if (approveTx.isPending || betTx.isPending) label = 'Confirm in wallet...'
-  else if (approveTx.isConfirming) label = 'Confirming allowance...'
-  else if (betTx.isConfirming) label = 'Confirming bet...'
-  else if (needsApproval) label = 'Step 1 of 2: Allow USDC'
-  else label = isYes ? 'Bet YES' : 'Bet NO'
+  const query = search.trim().toLowerCase()
+  const searchedMarkets = query ? markets.filter((m) => getMarketText(m).toLowerCase().includes(query)) : markets
+  const visible = searchedMarkets.filter((m) => matchesFilter(m, filter))
+
+  const counts: Record<Filter, number> = {
+    all: searchedMarkets.length,
+    open: searchedMarkets.filter((m) => matchesFilter(m, 'open')).length,
+    pending: searchedMarkets.filter((m) => matchesFilter(m, 'pending')).length,
+    settled: searchedMarkets.filter((m) => matchesFilter(m, 'settled')).length,
+    mine: searchedMarkets.filter((m) => matchesFilter(m, 'mine')).length,
+  }
 
   return (
-    <div className="space-y-4">
-      <p className="text-pretty text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
-        {m.question}
-      </p>
-
-      <div className="glass-inner rounded-2xl p-4">
-        <div className="flex items-center justify-between gap-2">
-          <input
-            inputMode="decimal"
-            value={amount}
-            autoFocus
-            aria-label="Custom bet amount in USDC"
-            onChange={(event) => {
-              const value = event.target.value.replace(/[^0-9.]/g, '')
-              if (/^\d*\.?\d{0,6}$/.test(value)) setAmount(value)
-            }}
-            placeholder="Custom amount"
-            className="display w-full bg-transparent text-3xl font-bold tabular-nums outline-none placeholder:text-slate-500"
-            style={{ color: 'var(--ink)' }}
-          />
-          <div className="flex shrink-0 items-center gap-1.5 text-sm font-semibold" style={{ color: 'var(--subtle)' }}>
-            <TokenUSDC variant="branded" size={20} /> USDC
+    <div className="mx-auto min-h-dvh max-w-6xl px-4 pb-12 pt-6">
+      <header className="mb-8 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <BaseLogo className="size-10 shrink-0 shadow-lg shadow-blue-600/20" />
+          <div>
+            <h1 className="display text-balance text-3xl font-bold sm:text-4xl">Base Prediction Market</h1>
+            <p className="mt-1 text-sm" style={{ color: 'var(--muted)' }}>
+              Bet USDC on YES or NO. Winners share the losing side&apos;s pool.
+            </p>
           </div>
         </div>
+        <div className="flex items-center gap-2.5">
+          <HowItWorksModal />
+          <ThemeToggle />
+          <ConnectKitButton />
+        </div>
+      </header>
 
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {QUICK_AMOUNTS.map((q) => (
-            <button
-              key={q}
-              type="button"
-              onClick={() => setAmount(q)}
-              className="min-h-8 rounded-full px-3 text-xs font-semibold tabular-nums transition-colors hover:bg-white/15"
-              style={{
-                background: amount === q ? 'var(--accent)' : 'var(--surface-strong)',
-                color: amount === q ? 'var(--accent-ink)' : 'var(--ink-2)',
-              }}
-            >
-              ${q}
-            </button>
-          ))}
-          <button
-            type="button"
-            disabled={!address || balanceRaw === 0n}
-            onClick={() => setAmount(formatUsdc(balanceRaw))}
-            className="min-h-8 rounded-full px-3 text-xs font-semibold uppercase tracking-wide transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-40"
-            style={{
-              background: isMaxSelected ? 'var(--accent)' : 'var(--surface-strong)',
-              color: isMaxSelected ? 'var(--accent-ink)' : 'var(--ink-2)',
-            }}
-          >
-            MAX
-          </button>
-          {amount !== '' && (
-            <button
-              type="button"
-              onClick={() => setAmount('')}
-              className="min-h-8 rounded-full px-3 text-xs font-semibold transition-colors hover:bg-white/15"
-              style={{
-                background: 'var(--surface-strong)',
-                color: 'var(--subtle)',
-              }}
-            >
-              Clear
-            </button>
+      {!MARKET_ADDRESS && (
+        <div className="glass mb-6 flex items-start gap-3 rounded-2xl p-4 text-sm" style={{ borderColor: 'var(--danger)' }}>
+          <TriangleAlert className="mt-0.5 size-4 shrink-0" style={{ color: 'var(--danger)' }} />
+          <span>Contract address missing. Set VITE_MARKET_ADDRESS in .env and restart the dev server.</span>
+        </div>
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+        <WalletPanel markets={markets} total={total} onCreate={() => setCreating(true)} />
+
+        <main>
+          <div className="relative mb-3">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2" style={{ color: 'var(--muted)' }} />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search markets..."
+              aria-label="Search markets"
+              className="h-10 w-full rounded-full pl-10 pr-9 text-sm outline-none transition-colors"
+              style={{ background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--border)' }}
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                aria-label="Clear search"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-0.5 transition-opacity hover:opacity-75"
+                style={{ color: 'var(--muted)' }}
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
+
+          <div className="mb-4 flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Filter markets">
+            {FILTERS.map((f) => {
+              const isSelected = filter === f.id
+              return (
+                <button
+                  key={f.id}
+                  role="tab"
+                  aria-selected={isSelected}
+                  onClick={() => setFilter(f.id)}
+                  className="flex min-h-10 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors"
+                  style={{
+                    background: isSelected ? 'var(--accent)' : 'var(--surface)',
+                    color: isSelected ? 'var(--accent-ink)' : 'var(--ink-2)',
+                    border: '1px solid var(--border)',
+                  }}
+                >
+                  <span>{f.label}</span>
+                  <span
+                    className="rounded-full px-1.5 py-0.5 text-xs tabular-nums"
+                    style={{ background: isSelected ? 'rgba(255, 255, 255, 0.2)' : 'rgba(128, 128, 128, 0.15)' }}
+                  >
+                    {counts[f.id]}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+
+          {isLoading && (
+            <div className="glass flex items-center justify-center gap-2 rounded-3xl p-10 text-sm" style={{ color: 'var(--muted)' }}>
+              <Loader2 className="size-4 animate-spin" /> Loading markets from Base Mainnet...
+            </div>
           )}
-        </div>
 
-        <div className="mt-3 flex justify-end">
-          <button
-            type="button"
-            disabled={!address || balanceRaw === 0n}
-            onClick={() => setAmount(formatUsdc(balanceRaw))}
-            className="text-xs font-semibold tabular-nums disabled:opacity-40"
-            style={{ color: 'var(--accent)' }}
-          >
-            {address ? `Balance: ${formatUsdc(balanceRaw)} USDC` : 'Connect to see balance'}
-          </button>
-        </div>
+          {isError && !isLoading && (
+            <div className="glass rounded-3xl p-6 text-sm" style={{ color: 'var(--muted)' }}>
+              Could not load markets. Check your connection and{' '}
+              <button onClick={refetchAll} className="font-semibold underline" style={{ color: 'var(--accent)' }}>
+                try again
+              </button>
+              .
+            </div>
+          )}
+
+          {!isLoading && !isError && visible.length === 0 && (
+            <div className="glass rounded-3xl p-10 text-center">
+              <p className="display text-xl font-semibold">{total === 0 ? 'No markets yet' : 'Nothing here'}</p>
+              <p className="mx-auto mt-1 max-w-xs text-sm" style={{ color: 'var(--muted)' }}>
+                {total === 0
+                  ? 'Create the first market and let people bet on the answer.'
+                  : query
+                    ? `No markets found matching "${search}".`
+                    : 'No markets match this filter right now.'}
+              </p>
+            </div>
+          )}
+
+          <div className="space-y-4">
+            {visible.map((m) => (
+              <MarketCard
+                key={m.id}
+                data={m}
+                now={now}
+                owner={owner}
+                onBet={(market, isYes) => setBet({ market, isYes })}
+                onChanged={refetchAll}
+              />
+            ))}
+          </div>
+        </main>
       </div>
 
-      <dl className="space-y-2 text-sm">
-        <div className="flex justify-between">
-          <dt style={{ color: 'var(--subtle)' }}>Your side</dt>
-          <dd className="font-semibold" style={{ color: sideColor }}>
-            {isYes ? 'YES' : 'NO'}
-          </dd>
-        </div>
-        <div className="flex justify-between">
-          <dt style={{ color: 'var(--subtle)' }}>Estimated payout if you win</dt>
-          <dd className="flex items-center gap-1.5 font-semibold tabular-nums">
-            {raw > 0n ? (
-              <>
-                <span>{formatUsdc(estimate)} USDC</span>
-                {multiplier && (
-                  <span
-                    className="rounded-full px-2 py-0.5 text-xs font-semibold"
-                    style={{ background: 'rgba(141,216,159,0.16)', color: 'var(--success)' }}
-                  >
-                    {multiplier}x
-                  </span>
-                )}
-              </>
-            ) : (
-              '-'
-            )}
-          </dd>
-        </div>
-        <p className="text-xs" style={{ color: 'var(--subtle)' }}>
-          The estimate changes as other people bet. Winners share the losing side's pool.
-        </p>
-      </dl>
+      <Footer />
 
-      {!isConnected ? (
-        <ConnectKitButton.Custom>
-          {({ show }) => (
-            <button
-              onClick={show}
-              className="btn-primary min-h-12 w-full rounded-2xl text-sm font-semibold transition-all active:scale-[0.99]"
-            >
-              Connect wallet
-            </button>
-          )}
-        </ConnectKitButton.Custom>
-      ) : (
-        <button
-          disabled={!wrongChain && (raw === 0n || insufficient || busy)}
-          onClick={wrongChain ? () => switchChain({ chainId: ARC_CHAIN_ID }) : submit}
-          className="btn-primary flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm font-semibold transition-all active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {busy && <Loader2 className="size-4 animate-spin" />}
-          {label}
-        </button>
-      )}
-
-      {betTx.isSuccess && betTx.hash && (
-        <a
-          href={buildTxExplorerUrl(ARC_CHAIN_ID, betTx.hash)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1.5 text-xs font-semibold"
-          style={{ color: 'var(--accent)' }}
-        >
-          View transaction on explorer <ExternalLink className="size-3.5" />
-        </a>
-      )}
+      <CreateSheet open={creating} onClose={() => setCreating(false)} onDone={refetchAll} />
+      <BetSheet
+        market={bet?.market ?? null}
+        isYes={bet?.isYes ?? true}
+        onClose={() => setBet(null)}
+        onPlaced={refetchAll}
+      />
     </div>
   )
 }
