@@ -24,7 +24,7 @@ interface BetSheetProps {
   onDone: () => void
 }
 
-const QUICK_AMOUNTS = ['1', '5', '10']
+const QUICK_AMOUNTS = ['1', '5', '10', '25']
 
 function toRaw(value: string): bigint {
   try {
