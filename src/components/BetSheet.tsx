@@ -108,8 +108,10 @@ function BetForm({
   const sideColor = isYes ? 'var(--success)' : 'var(--danger)'
   const quarterBalanceRaw = balanceRaw / 4n
   const halfBalanceRaw = balanceRaw / 2n
+  const threeQuartersBalanceRaw = (balanceRaw * 3n) / 4n
   const isQuarterSelected = balanceRaw > 0n && raw === quarterBalanceRaw
   const isHalfSelected = balanceRaw > 0n && raw === halfBalanceRaw
+  const isThreeQuartersSelected = balanceRaw > 0n && raw === threeQuartersBalanceRaw
   const isMaxSelected = balanceRaw > 0n && raw === balanceRaw
 
   const submit = () => {
@@ -205,6 +207,18 @@ function BetForm({
             }}
           >
             50%
+          </button>
+          <button
+            type="button"
+            disabled={!address || balanceRaw === 0n}
+            onClick={() => setAmount(formatUsdc(threeQuartersBalanceRaw))}
+            className="min-h-8 rounded-full px-3 text-xs font-semibold tabular-nums transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-40"
+            style={{
+              background: isThreeQuartersSelected ? 'var(--accent)' : 'var(--surface-strong)',
+              color: isThreeQuartersSelected ? 'var(--accent-ink)' : 'var(--ink-2)',
+            }}
+          >
+            75%
           </button>
           <button
             type="button"
