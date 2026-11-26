@@ -106,6 +106,8 @@ function BetForm({
   const multiplier = raw > 0n ? (Number(estimate) / Number(raw)).toFixed(2) : null
   const busy = approveTx.isPending || approveTx.isConfirming || betTx.isPending || betTx.isConfirming
   const sideColor = isYes ? 'var(--success)' : 'var(--danger)'
+  const quarterBalanceRaw = balanceRaw / 4n
+  const isQuarterSelected = balanceRaw > 0n && raw === quarterBalanceRaw
   const isMaxSelected = balanceRaw > 0n && raw === balanceRaw
 
   const submit = () => {
@@ -137,7 +139,6 @@ function BetForm({
   else if (betTx.isConfirming) label = 'Confirming bet...'
   else if (needsApproval) label = 'Step 1 of 2: Allow USDC'
   else label = isYes ? 'Bet YES' : 'Bet NO'
-
   return (
     <div className="space-y-4">
       <p className="text-pretty text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
@@ -179,6 +180,18 @@ function BetForm({
               ${q}
             </button>
           ))}
+          <button
+            type="button"
+            disabled={!address || balanceRaw === 0n}
+            onClick={() => setAmount(formatUsdc(quarterBalanceRaw))}
+            className="min-h-8 rounded-full px-3 text-xs font-semibold tabular-nums transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-40"
+            style={{
+              background: isQuarterSelected ? 'var(--accent)' : 'var(--surface-strong)',
+              color: isQuarterSelected ? 'var(--accent-ink)' : 'var(--ink-2)',
+            }}
+          >
+            25%
+          </button>
           <button
             type="button"
             disabled={!address || balanceRaw === 0n}
