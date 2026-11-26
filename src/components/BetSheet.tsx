@@ -103,6 +103,7 @@ function BetForm({
   const insufficient = raw > balanceRaw
   const wrongChain = isConnected && chainId !== ARC_CHAIN_ID
   const estimate = raw > 0n ? estimatePayout(m, isYes, raw) : 0n
+  const netProfit = estimate > raw ? estimate - raw : 0n
   const multiplier = raw > 0n ? (Number(estimate) / Number(raw)).toFixed(2) : null
   const busy = approveTx.isPending || approveTx.isConfirming || betTx.isPending || betTx.isConfirming
   const sideColor = isYes ? 'var(--success)' : 'var(--danger)'
@@ -285,6 +286,12 @@ function BetForm({
             ) : (
               '-'
             )}
+          </dd>
+        </div>
+        <div className="flex justify-between">
+          <dt style={{ color: 'var(--subtle)' }}>Potential net profit</dt>
+          <dd className="font-semibold tabular-nums" style={{ color: netProfit > 0n ? 'var(--success)' : 'var(--subtle)' }}>
+            {raw > 0n ? `+${formatUsdc(netProfit)} USDC` : '-'}
           </dd>
         </div>
         <p className="text-xs" style={{ color: 'var(--subtle)' }}>
