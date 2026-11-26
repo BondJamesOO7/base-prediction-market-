@@ -102,6 +102,7 @@ function BetForm({
   const needsApproval = raw > 0n && allowanceRaw < raw
   const insufficient = raw > balanceRaw
   const wrongChain = isConnected && chainId !== ARC_CHAIN_ID
+  const hasZeroBalance = isConnected && !wrongChain && !balance.isLoading && balanceRaw === 0n
   const estimate = raw > 0n ? estimatePayout(m, isYes, raw) : 0n
   const netProfit = estimate > raw ? estimate - raw : 0n
   const multiplier = raw > 0n ? (Number(estimate) / Number(raw)).toFixed(2) : null
@@ -259,6 +260,12 @@ function BetForm({
             {address ? `Balance: ${formatUsdc(balanceRaw)} USDC` : 'Connect to see balance'}
           </button>
         </div>
+
+        {hasZeroBalance && (
+          <p className="mt-2 text-xs font-medium" style={{ color: 'var(--danger)' }}>
+            You need USDC on Base to place a bet.
+          </p>
+        )}
       </div>
 
       <dl className="space-y-2 text-sm">
