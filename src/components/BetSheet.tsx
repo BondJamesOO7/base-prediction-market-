@@ -9,6 +9,7 @@ import { formatUsdc, parseUsdc } from '@/onchain-money'
 import { ConnectKitButton } from 'connectkit'
 import { Sheet } from './Sheet'
 import { useTx } from '@/hooks/useTx'
+import { useLocale } from '@/lib/LocaleContext'
 import {
   ARC_CHAIN_ID,
   MARKET_ADDRESS,
@@ -38,12 +39,13 @@ function toRaw(value: string): bigint {
 }
 
 export function BetSheet({ target, market, isYes, onClose, onDone, onPlaced }: BetSheetProps) {
+  const { t } = useLocale()
   const activeMarket = target ? target.market : (market ?? null)
   const activeIsYes = target ? target.isYes : (isYes ?? true)
   const handleDone = onPlaced ?? onDone ?? (() => {})
 
   return (
-    <Sheet open={!!activeMarket} title={activeIsYes ? 'Bet YES' : 'Bet NO'} onClose={onClose}>
+    <Sheet open={!!activeMarket} title={activeIsYes ? t('betYes') : t('betNo')} onClose={onClose}>
       {activeMarket && (
         <BetForm
           key={`${activeMarket.id}-${activeIsYes}`}
@@ -65,6 +67,7 @@ function BetForm({
   isYes: boolean
   onDone: () => void
 }) {
+  const { t } = useLocale()
   const { address, isConnected, chainId } = useAccount()
   const { switchChain } = useSwitchChain()
   const [amount, setAmount] = useState('')
@@ -91,7 +94,7 @@ function BetForm({
     void allowance.refetch()
   })
   const betTx = useTx(() => {
-    toast.success('Bet placed')
+    toast.success(t('betPlacedToast'))
     void balance.refetch()
     void allowance.refetch()
     onDone()
@@ -137,14 +140,14 @@ function BetForm({
   }
 
   let label: string
-  if (wrongChain) label = 'Switch to Base'
-  else if (raw === 0n) label = 'Enter an amount'
-  else if (insufficient) label = 'Insufficient USDC'
-  else if (approveTx.isPending || betTx.isPending) label = 'Confirm in wallet...'
-  else if (approveTx.isConfirming) label = 'Confirming allowance...'
-  else if (betTx.isConfirming) label = 'Confirming bet...'
-  else if (needsApproval) label = 'Step 1 of 2: Allow USDC'
-  else label = isYes ? 'Bet YES' : 'Bet NO'
+  if (wrongChain) label = t('switchToBase')
+  else if (raw === 0n) label = t('enterAmount')
+  else if (insufficient) label = t('insufficientUsdc')
+  else if (approveTx.isPending || betTx.isPending) label = t('confirmInWallet')
+  else if (approveTx.isConfirming) label = t('confirmingAllowance')
+  else if (betTx.isConfirming) label = t('confirmingBet')
+  else if (needsApproval) label = t('allowUsdcStep')
+  else label = isYes ? t('betYes') : t('betNo')
   return (
     <div className="space-y-4">
       <p className="text-pretty text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
@@ -157,12 +160,12 @@ function BetForm({
             inputMode="decimal"
             value={amount}
             autoFocus
-            aria-label="Custom bet amount in USDC"
+            aria-label={t('customAmount')}
             onChange={(event) => {
               const value = event.target.value.replace(/[^0-9.]/g, '')
               if (/^\d*\.?\d{0,6}$/.test(value)) setAmount(value)
             }}
-            placeholder="Custom amount"
+            placeholder={t('customAmount')}
             className="display w-full bg-transparent text-3xl font-bold tabular-nums outline-none placeholder:text-slate-500"
             style={{ color: 'var(--ink)' }}
           />
@@ -244,7 +247,7 @@ function BetForm({
                 color: 'var(--subtle)',
               }}
             >
-              Clear
+              {t('clear')}
             </button>
           )}
         </div>
@@ -257,26 +260,26 @@ function BetForm({
             className="text-xs font-semibold tabular-nums disabled:opacity-40"
             style={{ color: 'var(--accent)' }}
           >
-            {address ? `Balance: ${formatUsdc(balanceRaw)} USDC` : 'Connect to see balance'}
+            {address ? `${t('balance')}: ${formatUsdc(balanceRaw)} USDC` : t('connectToSeeBalance')}
           </button>
         </div>
 
         {hasZeroBalance && (
           <p className="mt-2 text-xs font-medium" style={{ color: 'var(--danger)' }}>
-            You need USDC on Base to place a bet.
+            {t('needUsdcWarning')}
           </p>
         )}
       </div>
 
       <dl className="space-y-2 text-sm">
         <div className="flex justify-between">
-          <dt style={{ color: 'var(--subtle)' }}>Your side</dt>
+          <dt style={{ color: 'var(--subtle)' }}>{t('yourSide')}</dt>
           <dd className="font-semibold" style={{ color: sideColor }}>
-            {isYes ? 'YES' : 'NO'}
+            {isYes ? t('yes') : t('no')}
           </dd>
         </div>
         <div className="flex justify-between">
-          <dt style={{ color: 'var(--subtle)' }}>Estimated payout if you win</dt>
+          <dt style={{ color: 'var(--subtle)' }}>{t('estimatedPayout')}</dt>
           <dd className="flex items-center gap-1.5 font-semibold tabular-nums">
             {raw > 0n ? (
               <>
@@ -296,13 +299,13 @@ function BetForm({
           </dd>
         </div>
         <div className="flex justify-between">
-          <dt style={{ color: 'var(--subtle)' }}>Potential net profit</dt>
+          <dt style={{ color: 'var(--subtle)' }}>{t('potentialNetProfit')}</dt>
           <dd className="font-semibold tabular-nums" style={{ color: netProfit > 0n ? 'var(--success)' : 'var(--subtle)' }}>
             {raw > 0n ? `+${formatUsdc(netProfit)} USDC` : '-'}
           </dd>
         </div>
         <p className="text-xs" style={{ color: 'var(--subtle)' }}>
-          The estimate changes as other people bet. Winners share the losing side's pool.
+          {t('estimateDisclaimer')}
         </p>
       </dl>
 
@@ -313,7 +316,7 @@ function BetForm({
               onClick={show}
               className="btn-primary min-h-12 w-full rounded-2xl text-sm font-semibold transition-all active:scale-[0.99]"
             >
-              Connect wallet
+              {t('connectWallet')}
             </button>
           )}
         </ConnectKitButton.Custom>
@@ -336,7 +339,7 @@ function BetForm({
           className="flex items-center justify-center gap-1.5 text-xs font-semibold"
           style={{ color: 'var(--accent)' }}
         >
-          View transaction on explorer <ExternalLink className="size-3.5" />
+          {t('viewOnExplorer')} <ExternalLink className="size-3.5" />
         </a>
       )}
     </div>
