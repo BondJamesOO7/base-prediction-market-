@@ -1,0 +1,27 @@
+import type { TranslationDictionary } from './en'
+
+export const zh: TranslationDictionary = {
+  betYes: '押注 是 (YES)',
+  betNo: '押注 否 (NO)',
+  customAmount: '自定义金额',
+  clear: '清除',
+  balance: '余额',
+  connectToSeeBalance: '连接钱包查看余额',
+  needUsdcWarning: '您需要在 Base 网络上持有 USDC 才能下注。',
+  yourSide: '您的方向',
+  yes: '是 (YES)',
+  no: '否 (NO)',
+  estimatedPayout: '获胜预计派彩',
+  potentialNetProfit: '潜在净利润',
+  estimateDisclaimer: '预计派彩会随他人下注而变化。获胜方将瓜分落败方的奖池。',
+  connectWallet: '连接钱包',
+  switchToBase: '切换到 Base 网络',
+  enterAmount: '请输入金额',
+  insufficientUsdc: 'USDC 余额不足',
+  confirmInWallet: '请在钱包中确认...',
+  confirmingAllowance: '正在确认授权...',
+  confirmingBet: '正在确认下注...',
+  allowUsdcStep: '第 1/2 步：授权 USDC',
+  betPlacedToast: '下注成功',
+  viewOnExplorer: '在区块浏览器中查看交易',
+}
