@@ -5,6 +5,7 @@ import { BetSheet } from './components/BetSheet'
 import { CreateSheet } from './components/CreateSheet'
 import { Footer } from './components/Footer'
 import { HowItWorksModal } from './components/HowItWorksModal'
+import { LanguageSelector } from './components/LanguageSelector'
 import { MarketCard } from './components/MarketCard'
 import { ThemeToggle } from './components/ThemeToggle'
 import { WalletPanel } from './components/WalletPanel'
@@ -83,10 +84,10 @@ export default function App() {
         <div className="flex items-center gap-2.5">
           <HowItWorksModal />
           <ThemeToggle />
+          <LanguageSelector />
           <ConnectKitButton />
         </div>
       </header>
-
       {!MARKET_ADDRESS && (
         <div className="glass mb-6 flex items-start gap-3 rounded-2xl p-4 text-sm" style={{ borderColor: 'var(--danger)' }}>
           <TriangleAlert className="mt-0.5 size-4 shrink-0" style={{ color: 'var(--danger)' }} />
