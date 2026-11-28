@@ -8,7 +8,7 @@ export function LanguageSelector() {
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const current = LANGUAGES.find((lang) => lang.code === locale) ?? LANGUAGES[0]
+  const current = LANGUAGES.find((lang) => lang.code === locale) ?? LANGUAGES
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -45,7 +45,7 @@ export function LanguageSelector() {
       {open && (
         <div
           role="menu"
-          className="glass-inner absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-2xl p-1 shadow-xl backdrop-blur-xl"
+          className="glass-inner absolute right-0 z-50 mt-2 grid w-72 grid-cols-2 gap-0.5 overflow-hidden rounded-2xl p-1.5 shadow-xl backdrop-blur-xl"
           style={{ background: 'var(--surface-strong)' }}
         >
           {LANGUAGES.map((lang) => {
@@ -59,17 +59,17 @@ export function LanguageSelector() {
                   setLocale(lang.code)
                   setOpen(false)
                 }}
-                className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-white/10"
+                className="flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-left text-xs font-medium transition-colors hover:bg-white/10"
                 style={{
                   color: active ? 'var(--accent)' : 'var(--ink)',
                   fontWeight: active ? 600 : 500,
                 }}
               >
-                <span className="flex items-center gap-2">
-                  <span className="w-5 text-[11px] font-bold opacity-70">{lang.label}</span>
-                  <span>{lang.nativeName}</span>
+                <span className="flex items-center gap-2 truncate">
+                  <span className="w-5 shrink-0 text-[11px] font-bold opacity-70">{lang.label}</span>
+                  <span className="truncate">{lang.nativeName}</span>
                 </span>
-                {active && <Check className="size-3.5" />}
+                {active && <Check className="size-3.5 shrink-0" />}
               </button>
             )
           })}
