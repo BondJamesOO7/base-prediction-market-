@@ -75,7 +75,7 @@ export default function App() {
         <div className="flex items-center gap-3.5">
           <BaseLogo className="size-10 shrink-0 shadow-lg shadow-blue-600/20" />
           <div>
-            <h1 className="display text-balance text-3xl font-bold sm:text-4xl">Base Prediction Market</h1>
+            <h1 className="display text-balance text-3xl font-bold sm:text-4xl">Ace Prediction Market</h1>
             <p className="mt-1 text-sm" style={{ color: 'var(--muted)' }}>
               Bet USDC on YES or NO. Winners share the losing side&apos;s pool.
             </p>
