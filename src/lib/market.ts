@@ -2,15 +2,29 @@ import { erc20Abi, type Address } from 'viem'
 import { getUsdc, requireChain } from '@/onchain-facts'
 import { marketAbi } from './marketAbi'
 
-export const ARC_CHAIN_ID = 8453 as const
+const DEPLOYMENTS = {
+  84532: {
+    market: '0xdc54B1845ed9C02396dCDF0615ec7da6f7Bcc215' as Address,
+    usdc: '0x036CbD53842c5426634e7929541eC2318f3dCF7e' as Address,
+  },
+  8453: {
+    market: '0x3009f6e4dB56BbF0BD7e86CbAfAa81505E96182D' as Address,
+    usdc: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as Address,
+  },
+} as const
+
+const envChainId = Number(import.meta.env.VITE_CHAIN_ID)
+export const ARC_CHAIN_ID: 84532 | 8453 = envChainId === 8453 ? 8453 : 84532
+export const IS_TESTNET = ARC_CHAIN_ID === 84532
+
 export const ARC_CHAIN = requireChain(ARC_CHAIN_ID)
-export const USDC_ADDRESS = (getUsdc(ARC_CHAIN_ID)?.address ?? '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913') as Address
+export const USDC_ADDRESS = (getUsdc(ARC_CHAIN_ID)?.address ?? DEPLOYMENTS[ARC_CHAIN_ID].usdc) as Address
 
 const envAddress = import.meta.env.VITE_MARKET_ADDRESS as string | undefined
 export const MARKET_ADDRESS = (
   envAddress && /^0x[0-9a-fA-F]{40}$/.test(envAddress)
     ? envAddress
-    : '0x3009f6e4dB56BbF0BD7e86CbAfAa81505E96182D'
+    : DEPLOYMENTS[ARC_CHAIN_ID].market
 ) as Address
 
 export const market = { abi: marketAbi, chainId: ARC_CHAIN_ID } as const
