@@ -1,8 +1,9 @@
 import { Github, ExternalLink } from "lucide-react";
+import { ARC_CHAIN, MARKET_ADDRESS } from "../lib/market";
 
-const BASESCAN_LINK = "https://basescan.org" + "/address/0x3009f6e4dB56BbF0BD7e86CbAfAa81505E96182D";
-const GITHUB_LINK = "https://github.com" + "/BondJamesOO7/base-prediction-market-";
-const X_LINK = "https://x.com" + "/OO7BondJames007";
+const BASESCAN_LINK = `${ARC_CHAIN.explorerBase}/address/${MARKET_ADDRESS}`;
+const GITHUB_LINK = "https://github.com";
+const X_LINK = "https://x.com";
 
 export function Footer() {
   return (
@@ -15,7 +16,7 @@ export function Footer() {
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 animate-pulse rounded-full bg-[#0052FF]" />
             <span>
-              Powered by <strong style={{ color: "var(--ink)" }}>Base Mainnet</strong> · Parimutuel Prediction Engine
+              Powered by <strong style={{ color: "var(--ink)" }}>{ARC_CHAIN.name}</strong> · Parimutuel Prediction Engine
             </span>
           </div>
 
