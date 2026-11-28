@@ -7,8 +7,9 @@ import { ko } from './locales/ko'
 import { fr } from './locales/fr'
 import { ja } from './locales/ja'
 import { id } from './locales/id'
+import { de } from './locales/de'
 
-export type Locale = 'en' | 'pt' | 'es' | 'zh' | 'ru' | 'ko' | 'fr' | 'ja' | 'id'
+export type Locale = 'en' | 'pt' | 'es' | 'zh' | 'ru' | 'ko' | 'fr' | 'ja' | 'id' | 'de'
 
 export const DEFAULT_LOCALE: Locale = 'en'
 
@@ -22,6 +23,7 @@ export const LANGUAGES: { code: Locale; label: string; nativeName: string }[] = 
   { code: 'fr', label: 'FR', nativeName: 'Français' },
   { code: 'ja', label: 'JA', nativeName: '日本語' },
   { code: 'id', label: 'ID', nativeName: 'Bahasa Indonesia' },
+  { code: 'de', label: 'DE', nativeName: 'Deutsch' },
 ]
 
 export const translations: Record<Locale, TranslationDictionary> = {
@@ -34,6 +36,7 @@ export const translations: Record<Locale, TranslationDictionary> = {
   fr,
   ja,
   id,
+  de,
 }
 
 export type { TranslationDictionary, TranslationKey }
